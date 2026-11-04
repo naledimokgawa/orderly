@@ -4,7 +4,7 @@ Internal web app for small food businesses to manage customer orders.
 
 ## Live Demo
 
-https://orderly-amber.vercel.app/
+https://orderly-pied.vercel.app
 
 ## Team
 
@@ -79,7 +79,7 @@ http://localhost:3000
 
 The app is deployed on Vercel:
 
-https://orderly-amber.vercel.app/
+https://orderly-pied.vercel.app
 
 ## Notes
 
