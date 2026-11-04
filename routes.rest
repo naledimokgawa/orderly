@@ -1,0 +1,94 @@
+@baseUrl = http://localhost:3000
+
+@staffEmail = staffmember1@gmail.com
+@staffPassword = staff1
+
+@newUserName = Alex Morgan
+@newUserEmail = alex.morgan@example.com
+@newUserPassword = newUser123
+
+@docsUsername = admin
+@docsPassword = orderlydocs123
+
+### 1) Login as a staff member
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{staffEmail}}",
+  "password": "{{staffPassword}}"
+}
+
+### 2) Get current session
+GET {{baseUrl}}/api/auth/session
+Cookie: orderly_token={{login.response.body.token}}
+
+### 3) Get all staff members
+GET {{baseUrl}}/api/staff
+Cookie: orderly_token={{login.response.body.token}}
+
+### 4) Get all orders
+GET {{baseUrl}}/api/orders
+Cookie: orderly_token={{login.response.body.token}}
+
+### 5) Create a new user account
+# @name signup
+POST {{baseUrl}}/api/auth/signup
+Content-Type: application/json
+
+{
+  "name": "{{newUserName}}",
+  "email": "{{newUserEmail}}",
+  "password": "{{newUserPassword}}"
+}
+
+### 6) Create a new order
+# @name createOrder
+POST {{baseUrl}}/api/orders
+Content-Type: application/json
+Cookie: orderly_token={{login.response.body.token}}
+x-user-id: 2
+
+{
+  "customerName": "Jordan Smith",
+  "description": "2 tacos, 1 soda, and a burger",
+  "orderDate": "2026-10-09"
+}
+
+### 7) Update the order we just created
+@orderId = {{createOrder.response.body.order.id}}
+PATCH {{baseUrl}}/api/orders/{{orderId}}
+Content-Type: application/json
+Cookie: orderly_token={{login.response.body.token}}
+
+{
+  "status": "done",
+  "description": "Updated order: 2 tacos, 1 soda, and a burger",
+  "customerName": "Jordan Smith"
+}
+
+### 8) Fetch a single order by id
+GET {{baseUrl}}/api/orders/{{orderId}}
+Cookie: orderly_token={{login.response.body.token}}
+
+### 9) Delete the order we just created
+DELETE {{baseUrl}}/api/orders/{{orderId}}
+Cookie: orderly_token={{login.response.body.token}}
+
+### 10) Docs-only login
+# @name docsLogin
+POST {{baseUrl}}/api/auth/docs/login
+Content-Type: application/json
+
+{
+  "username": "{{docsUsername}}",
+  "password": "{{docsPassword}}"
+}
+
+### 11) Docs logout
+POST {{baseUrl}}/api/auth/docs/logout
+Cookie: orderly_docs_session=authenticated
+
+### 12) Open the docs page in the browser
+GET {{baseUrl}}/api-docs
