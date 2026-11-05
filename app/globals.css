@@ -1,6 +1,4 @@
-@import 'tailwindcss';
-
-/* Colors, fonts and the page background now come from the Chakra theme (components/ui/theme.ts). */
+/* Colors, fonts and the page background come from the Chakra theme (components/ui/theme.ts). */
 
 html {
   scroll-behavior: smooth;

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import SwaggerUI from 'swagger-ui-react';
+import { Box, Button, Field, Flex, Heading, Input, Stack, Text } from '@chakra-ui/react';
 import 'swagger-ui-react/swagger-ui.css';
 
 const swaggerSpec = {
@@ -193,55 +194,55 @@ export default function ApiDocsPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="mx-auto mt-12 max-w-xl rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-3xl font-black text-slate-800">Orderly API Docs</h1>
-        <p className="mt-3 text-slate-600">Sign in to access the interactive API documentation.</p>
+      <Box mx="auto" mt="12" maxW="xl" rounded="3xl" borderWidth="1px" bg="bg.panel" p="8" shadow="xs">
+        <Heading as="h1" size="3xl" fontWeight="black">
+          Orderly API Docs
+        </Heading>
+        <Text mt="3" color="fg.muted">
+          Sign in to access the interactive API documentation.
+        </Text>
 
-        <form onSubmit={handleLogin} className="mt-6 space-y-4">
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">Username</label>
-            <input
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3"
-            />
-          </div>
+        <form onSubmit={handleLogin}>
+          <Stack mt="6" gap="4">
+            <Field.Root>
+              <Field.Label>Username</Field.Label>
+              <Input size="lg" value={username} onChange={(e) => setUsername(e.target.value)} />
+            </Field.Root>
 
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3"
-            />
-          </div>
+            <Field.Root>
+              <Field.Label>Password</Field.Label>
+              <Input type="password" size="lg" value={password} onChange={(e) => setPassword(e.target.value)} />
+            </Field.Root>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && (
+              <Text fontSize="sm" color="fg.error">
+                {error}
+              </Text>
+            )}
 
-          <button type="submit" className="rounded-xl bg-[#4f46e5] px-5 py-3 font-semibold text-white hover:bg-[#4338ca]">
-            Access docs
-          </button>
+            <div>
+              <Button type="submit" colorPalette="brand" size="lg">
+                Access docs
+              </Button>
+            </div>
+          </Stack>
         </form>
-      </div>
+      </Box>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:border-slate-400"
-        >
+    <Stack gap="4" p="4">
+      <Flex justify="flex-end">
+        <Button variant="outline" size="sm" onClick={handleLogout}>
           Logout from docs
-        </button>
-      </div>
+        </Button>
+      </Flex>
 
-      <div className="rounded-2xl bg-white p-4 shadow-sm">
+      {/* Swagger UI has its own light styling, so keep its panel light in dark mode too. */}
+      <Box rounded="2xl" bg="white" color="gray.900" p="4" shadow="xs">
         <SwaggerUI spec={swaggerSpec as any} tryItOutEnabled />
-      </div>
-    </div>
+      </Box>
+    </Stack>
   );
 }
