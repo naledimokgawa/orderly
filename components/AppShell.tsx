@@ -56,7 +56,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="border-b border-slate-200 bg-white/90 backdrop-blur-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <Link href="/" className="text-2xl font-extrabold tracking-tight text-[#4f46e5]">
-            Ordarly
+            Orderly
           </Link>
 
           <nav className="flex items-center gap-3 text-sm font-medium">

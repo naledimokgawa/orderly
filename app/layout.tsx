@@ -13,11 +13,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Ordarly | Small Business Order Manager',
+  title: 'Orderly | Small Business Order Manager',
   description: 'Efficient order management for small food businesses.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   openGraph: {
-    title: 'Ordarly',
+    title: 'Orderly',
     description: 'Efficient order management for small food businesses.',
     type: 'website',
     images: [{ url: '/favicon.svg' }],
