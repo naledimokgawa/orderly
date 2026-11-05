@@ -2,7 +2,7 @@
 
 import NextLink from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Avatar,
   Badge,
@@ -107,24 +107,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const loadPreparingCount = useCallback(async () => {
-    try {
-      const response = await fetch('/api/orders');
-      if (!response.ok) return;
-      const data = await response.json();
-      const orders: { status: string }[] = data.orders || [];
-      setPreparingCount(orders.filter((order) => order.status === 'preparing').length);
-    } catch {
-      // Leave the count as it was if the request fails.
-    }
-  }, []);
-
   useEffect(() => {
     if (!user) return;
+    let cancelled = false;
+
+    const loadPreparingCount = () => {
+      fetch('/api/orders')
+        .then((response) => (response.ok ? response.json() : null))
+        .then((data: { orders?: { status: string }[] } | null) => {
+          if (cancelled || !data) return;
+          const orders = data.orders || [];
+          setPreparingCount(orders.filter((order) => order.status === 'preparing').length);
+        })
+        .catch(() => {
+          // Leave the count as it was if the request fails.
+        });
+    };
+
     loadPreparingCount();
     window.addEventListener(ORDERS_CHANGED_EVENT, loadPreparingCount);
-    return () => window.removeEventListener(ORDERS_CHANGED_EVENT, loadPreparingCount);
-  }, [user, pathname, loadPreparingCount]);
+    return () => {
+      cancelled = true;
+      window.removeEventListener(ORDERS_CHANGED_EVENT, loadPreparingCount);
+    };
+  }, [user, pathname]);
 
   const isActive = (href: string) => pathname === href;
 

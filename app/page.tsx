@@ -11,7 +11,7 @@ export default function HomePage() {
             Welcome to Orderly
           </Heading>
 
-          <Stack mt="8" gap="5" fontSize="lg" lineHeight="8" color="fg.muted">
+          <Stack mt="8" gap="5" fontSize="lg" lineHeight="tall" color="fg.muted">
             <Text>
               Orderly is a small business order manager designed to help you streamline your workflow,
               reduce errors, and keep everything organized in one place.
