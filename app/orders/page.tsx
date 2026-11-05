@@ -1,7 +1,8 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import { AppShell } from '../../components/AppShell';
+import { Badge, Box, Button, Field, Flex, Heading, Input, SimpleGrid, Stack, Text } from '@chakra-ui/react';
+import { AppShell, notifyOrdersChanged } from '../../components/AppShell';
 import { OrderCard } from '../../components/OrderCard';
 
 type UserSession = {
@@ -63,6 +64,7 @@ export default function OrdersPage() {
       setDescription('');
       setOrderDate(new Date().toISOString().slice(0, 10));
       await loadOrders();
+      notifyOrdersChanged();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to create order');
     }
@@ -75,70 +77,68 @@ export default function OrdersPage() {
       body: JSON.stringify({ status: 'done' }),
     });
     await loadOrders();
+    notifyOrdersChanged();
   }
 
   async function handleDelete(id: number) {
     await fetch(`/api/orders/${id}`, { method: 'DELETE' });
     await loadOrders();
+    notifyOrdersChanged();
   }
 
   return (
     <AppShell>
-      <div className="space-y-8">
+      <Stack gap="8">
         {user && (
-          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-2xl font-bold text-slate-800">Create an order</h2>
-            <form onSubmit={handleCreateOrder} className="mt-5 grid gap-4 md:grid-cols-3">
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">Customer name</label>
-                <input
-                  type="text"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-indigo-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">Order description</label>
-                <input
-                  type="text"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-indigo-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">Order date</label>
-                <input
-                  type="date"
-                  value={orderDate}
-                  onChange={(e) => setOrderDate(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 outline-none focus:border-indigo-500"
-                  required
-                />
-              </div>
-              <div className="md:col-span-3 flex items-center gap-3">
-                <button type="submit" className="rounded-xl bg-[#4f46e5] px-5 py-3 font-semibold text-white hover:bg-[#4338ca]">
+          <Box as="section" rounded="3xl" borderWidth="1px" bg="bg.panel" p="6" shadow="xs">
+            <Heading as="h2" size="2xl">
+              Create an order
+            </Heading>
+            <form onSubmit={handleCreateOrder}>
+              <SimpleGrid mt="5" gap="4" columns={{ base: 1, md: 3 }}>
+                <Field.Root required>
+                  <Field.Label>Customer name</Field.Label>
+                  <Input type="text" size="lg" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
+                </Field.Root>
+                <Field.Root required>
+                  <Field.Label>Order description</Field.Label>
+                  <Input type="text" size="lg" value={description} onChange={(e) => setDescription(e.target.value)} />
+                </Field.Root>
+                <Field.Root required>
+                  <Field.Label>Order date</Field.Label>
+                  <Input type="date" size="lg" value={orderDate} onChange={(e) => setOrderDate(e.target.value)} />
+                </Field.Root>
+              </SimpleGrid>
+              <Flex mt="4" align="center" gap="3" wrap="wrap">
+                <Button type="submit" colorPalette="brand" size="lg">
                   Save order
-                </button>
-                {error && <p className="text-sm text-red-600">{error}</p>}
-                {success && <p className="text-sm text-emerald-600">{success}</p>}
-              </div>
+                </Button>
+                {error && (
+                  <Text fontSize="sm" color="fg.error">
+                    {error}
+                  </Text>
+                )}
+                {success && (
+                  <Text fontSize="sm" color="fg.success">
+                    {success}
+                  </Text>
+                )}
+              </Flex>
             </form>
-          </section>
+          </Box>
         )}
 
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-slate-800">Current orders</h2>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">
+        <Box as="section" rounded="3xl" borderWidth="1px" bg="bg.panel" p="6" shadow="xs">
+          <Flex mb="6" align="center" justify="space-between">
+            <Heading as="h2" size="2xl">
+              Current orders
+            </Heading>
+            <Badge size="lg" rounded="full" variant="subtle">
               {orders.length} total
-            </span>
-          </div>
+            </Badge>
+          </Flex>
 
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <SimpleGrid gap="5" columns={{ base: 1, md: 2, xl: 3 }}>
             {orders.map((order) => (
               <OrderCard
                 key={order.id}
@@ -147,10 +147,9 @@ export default function OrdersPage() {
                 onDelete={user ? handleDelete : undefined}
               />
             ))}
-          </div>
-        </section>
-      </div>
+          </SimpleGrid>
+        </Box>
+      </Stack>
     </AppShell>
   );
 }
-

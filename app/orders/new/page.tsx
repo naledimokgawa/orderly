@@ -2,7 +2,8 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AppShell } from '../../../components/AppShell';
+import { Box, Button, Field, Heading, Input, Stack, Text } from '@chakra-ui/react';
+import { AppShell, notifyOrdersChanged } from '../../../components/AppShell';
 
 export default function NewOrderPage() {
   const router = useRouter();
@@ -23,54 +24,46 @@ export default function NewOrderPage() {
       return;
     }
 
+    notifyOrdersChanged();
     router.push('/orders');
   }
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-2xl rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-3xl font-black text-slate-800">New order</h1>
+      <Box mx="auto" maxW="2xl" rounded="3xl" borderWidth="1px" bg="bg.panel" p={{ base: '6', md: '8' }} shadow="xs">
+        <Heading as="h1" size="3xl" fontWeight="black">
+          New order
+        </Heading>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-5">
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">Customer name</label>
-            <input
-              type="text"
-              value={form.customerName}
-              onChange={(e) => setForm({ ...form, customerName: e.target.value })}
-              className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3"
-              required
-            />
-          </div>
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">Order description</label>
-            <input
-              type="text"
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3"
-              required
-            />
-          </div>
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">Order date</label>
-            <input
-              type="date"
-              value={form.orderDate}
-              onChange={(e) => setForm({ ...form, orderDate: e.target.value })}
-              className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3"
-              required
-            />
-          </div>
+        <form onSubmit={handleSubmit}>
+          <Stack mt="6" gap="5">
+            <Field.Root required>
+              <Field.Label>Customer name</Field.Label>
+              <Input type="text" size="lg" value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} />
+            </Field.Root>
+            <Field.Root required>
+              <Field.Label>Order description</Field.Label>
+              <Input type="text" size="lg" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+            </Field.Root>
+            <Field.Root required>
+              <Field.Label>Order date</Field.Label>
+              <Input type="date" size="lg" value={form.orderDate} onChange={(e) => setForm({ ...form, orderDate: e.target.value })} />
+            </Field.Root>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && (
+              <Text fontSize="sm" color="fg.error">
+                {error}
+              </Text>
+            )}
 
-          <button type="submit" className="rounded-xl bg-[#4f46e5] px-5 py-3 font-semibold text-white hover:bg-[#4338ca]">
-            Save order
-          </button>
+            <div>
+              <Button type="submit" colorPalette="brand" size="lg">
+                Save order
+              </Button>
+            </div>
+          </Stack>
         </form>
-      </div>
+      </Box>
     </AppShell>
   );
 }
-

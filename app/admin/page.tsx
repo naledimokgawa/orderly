@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Badge, Box, Flex, Heading, SimpleGrid, Text } from '@chakra-ui/react';
 import { AppShell } from '../../components/AppShell';
 
 type StaffMember = {
@@ -26,28 +27,40 @@ export default function AdminPage() {
 
   return (
     <AppShell>
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="mb-6 flex items-center justify-between">
+      <Box rounded="3xl" borderWidth="1px" bg="bg.panel" p="6" shadow="xs">
+        <Flex mb="6" align="center" justify="space-between" gap="4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Admin</p>
-            <h1 className="mt-2 text-3xl font-black text-slate-800">Staff members</h1>
+            <Text fontSize="sm" fontWeight="semibold" textTransform="uppercase" letterSpacing="widest" color="fg.muted">
+              Admin
+            </Text>
+            <Heading as="h1" mt="2" size="3xl" fontWeight="black">
+              Staff members
+            </Heading>
           </div>
-          <span className="rounded-full bg-indigo-50 px-3 py-1 text-sm font-semibold text-indigo-700">
+          <Badge colorPalette="brand" variant="subtle" size="lg" rounded="full">
             {staff.length} team members
-          </span>
-        </div>
+          </Badge>
+        </Flex>
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <SimpleGrid gap="4" columns={{ base: 1, md: 2, xl: 3 }}>
           {staff.map((member) => (
-            <div key={member.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{member.role}</p>
-              <h2 className="mt-2 text-xl font-bold text-slate-800">{member.name}</h2>
-              <p className="mt-2 text-slate-600">{member.email}</p>
-              <p className="mt-4 text-xs text-slate-500">Joined {new Date(member.created_at).toLocaleDateString()}</p>
-            </div>
+            <Box key={member.id} rounded="2xl" borderWidth="1px" bg="bg.muted" p="5">
+              <Text fontSize="xs" fontWeight="semibold" textTransform="uppercase" letterSpacing="widest" color="fg.muted">
+                {member.role}
+              </Text>
+              <Heading as="h2" mt="2" size="lg">
+                {member.name}
+              </Heading>
+              <Text mt="2" color="fg.muted">
+                {member.email}
+              </Text>
+              <Text mt="4" fontSize="xs" color="fg.subtle">
+                Joined {new Date(member.created_at).toLocaleDateString()}
+              </Text>
+            </Box>
           ))}
-        </div>
-      </div>
+        </SimpleGrid>
+      </Box>
     </AppShell>
   );
 }
