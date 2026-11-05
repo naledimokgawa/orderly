@@ -13,7 +13,15 @@ type UserSession = {
 
 function StatTile({ label, value, palette, capitalize }: { label: string; value: string; palette: string; capitalize?: boolean }) {
   return (
-    <Box rounded="2xl" p="5" colorPalette={palette} bg="colorPalette.subtle">
+    <Box
+      rounded="2xl"
+      p="5"
+      colorPalette={palette}
+      // Dark mode: a faint tint plus a soft border, so tomato/orange don't read as error banners.
+      bg={{ base: 'colorPalette.subtle', _dark: 'colorPalette.500/10' }}
+      borderWidth="1px"
+      borderColor={{ base: 'transparent', _dark: 'colorPalette.500/25' }}
+    >
       <Text fontSize="sm" color="colorPalette.fg">
         {label}
       </Text>
