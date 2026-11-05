@@ -1,42 +1,40 @@
-import Link from 'next/link';
+import NextLink from 'next/link';
+import { Box, Button, Flex, Heading, Stack, Text } from '@chakra-ui/react';
 import { AppShell } from '../components/AppShell';
 
 export default function HomePage() {
   return (
     <AppShell>
-      <div className="flex min-h-[70vh] flex-col items-center justify-center px-6 py-12 text-center">
-        <div className="max-w-4xl">
-          <h1 className="text-5xl font-black tracking-tight text-[#4f46e5] md:text-7xl">
+      <Flex minH="70vh" direction="column" align="center" justify="center" px={{ base: '2', md: '6' }} py="12" textAlign="center">
+        <Box maxW="4xl">
+          <Heading as="h1" fontSize={{ base: '5xl', md: '7xl' }} fontWeight="black" letterSpacing="tight" lineHeight="1.1" color="brand.fg">
             Welcome to Orderly
-          </h1>
+          </Heading>
 
-          <div className="mt-8 space-y-5 text-lg leading-8 text-slate-700">
-            <p>
+          <Stack mt="8" gap="5" fontSize="lg" lineHeight="8" color="fg.muted">
+            <Text>
               Orderly is a small business order manager designed to help you streamline your workflow,
               reduce errors, and keep everything organized in one place.
-            </p>
-            <p>
+            </Text>
+            <Text>
               With Orderly, you can track deliveries, manage customer notes, and maintain accurate
               records without the usual chaos. Every feature is built to support clarity, accuracy,
               and privacy.
-            </p>
-            <p>
+            </Text>
+            <Text>
               We believe in accessibility, collaboration, and precision. That means Orderly is
               responsive across devices, easy to use, and designed to reduce mistakes during order
               entry and fulfillment.
-            </p>
-          </div>
+            </Text>
+          </Stack>
 
-          <div className="mt-10 flex justify-center">
-            <Link
-              href="/login"
-              className="rounded-xl bg-[#4f46e5] px-7 py-4 text-lg font-semibold text-white shadow-lg shadow-indigo-200 transition hover:bg-[#4338ca]"
-            >
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </div>
+          <Flex mt="10" justify="center">
+            <Button asChild colorPalette="brand" size="xl" rounded="xl" px="8" shadow="md">
+              <NextLink href="/login">Get Started</NextLink>
+            </Button>
+          </Flex>
+        </Box>
+      </Flex>
     </AppShell>
   );
 }
