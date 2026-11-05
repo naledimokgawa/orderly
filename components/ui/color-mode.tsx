@@ -3,17 +3,8 @@
 import { ClientOnly, IconButton, Skeleton, type IconButtonProps } from '@chakra-ui/react';
 import { ThemeProvider, useTheme, type ThemeProviderProps } from 'next-themes';
 
-// next-themes renders an inline <script> that sets the theme before the page paints.
-// On the server it must stay a normal script so the browser runs it. In the browser,
-// React 19.2 warns about any executable <script> it renders, so there we mark it as a
-// data block (type="application/json"); it has already run by then, so nothing is lost.
-const themeScriptProps =
-  typeof window === 'undefined'
-    ? { suppressHydrationWarning: true }
-    : { type: 'application/json', suppressHydrationWarning: true };
-
 export function ColorModeProvider(props: ThemeProviderProps) {
-  return <ThemeProvider attribute="class" disableTransitionOnChange scriptProps={themeScriptProps} {...props} />;
+  return <ThemeProvider attribute="class" disableTransitionOnChange {...props} />;
 }
 
 export function useColorMode() {
