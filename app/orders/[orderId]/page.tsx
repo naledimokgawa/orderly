@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { Badge, Box, Heading, Stack, Text } from '@chakra-ui/react';
 import { AppShell } from '../../../components/AppShell';
+import { statusPalette } from '../../../components/OrderCard';
 
 type Order = {
   id: number;
@@ -31,24 +33,46 @@ export default function OrderDetailPage() {
   if (!order) {
     return (
       <AppShell>
-        <div className="rounded-3xl border border-slate-200 bg-white p-8 text-slate-600 shadow-sm">Loading order...</div>
+        <Box rounded="3xl" borderWidth="1px" bg="bg.panel" p="8" color="fg.muted" shadow="xs">
+          Loading order...
+        </Box>
       </AppShell>
     );
   }
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-2xl rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Order #{order.id}</p>
-        <h1 className="mt-2 text-3xl font-black text-slate-800">{order.customer_name}</h1>
+      <Box mx="auto" maxW="2xl" rounded="3xl" borderWidth="1px" bg="bg.panel" p={{ base: '6', md: '8' }} shadow="xs">
+        <Text fontSize="sm" fontWeight="semibold" textTransform="uppercase" letterSpacing="widest" color="fg.muted">
+          Order #{order.id}
+        </Text>
+        <Heading as="h1" mt="2" size="3xl" fontWeight="black">
+          {order.customer_name}
+        </Heading>
 
-        <div className="mt-6 space-y-4 text-slate-700">
-          <p><span className="font-semibold">Description:</span> {order.description}</p>
-          <p><span className="font-semibold">Date:</span> {order.order_date}</p>
-          <p><span className="font-semibold">Status:</span> <span className="capitalize">{order.status}</span></p>
-        </div>
-      </div>
+        <Stack mt="6" gap="4" color="fg.muted">
+          <Text>
+            <Text as="span" fontWeight="semibold" color="fg">
+              Description:
+            </Text>{' '}
+            {order.description}
+          </Text>
+          <Text>
+            <Text as="span" fontWeight="semibold" color="fg">
+              Date:
+            </Text>{' '}
+            {order.order_date}
+          </Text>
+          <Text>
+            <Text as="span" fontWeight="semibold" color="fg">
+              Status:
+            </Text>{' '}
+            <Badge colorPalette={statusPalette[order.status]} variant="subtle" rounded="full" textTransform="capitalize">
+              {order.status}
+            </Badge>
+          </Text>
+        </Stack>
+      </Box>
     </AppShell>
   );
 }
-

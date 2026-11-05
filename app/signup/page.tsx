@@ -1,8 +1,9 @@
 'use client';
 
-import Link from 'next/link';
+import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
+import { Alert, Box, Button, Field, Heading, Input, Link, Stack, Text } from '@chakra-ui/react';
 import { AppShell } from '../../components/AppShell';
 
 export default function SignupPage() {
@@ -39,73 +40,60 @@ export default function SignupPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-xl rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="mb-6 text-center text-3xl font-extrabold text-slate-800">Create an account</h1>
+      <Box mx="auto" maxW="xl" rounded="3xl" borderWidth="1px" bg="bg.panel" p={{ base: '6', md: '8' }} shadow="xs">
+        <Heading as="h1" mb="6" textAlign="center" size="3xl" fontWeight="extrabold">
+          Create an account
+        </Heading>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label htmlFor="name" className="mb-2 block text-sm font-semibold text-slate-700">
-              Full name
-            </label>
-            <input
-              id="name"
-              type="text"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-              required
-            />
-          </div>
+        <form onSubmit={handleSubmit}>
+          <Stack gap="5">
+            <Field.Root required>
+              <Field.Label>Full name</Field.Label>
+              <Input id="name" type="text" size="lg" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            </Field.Root>
 
-          <div>
-            <label htmlFor="email" className="mb-2 block text-sm font-semibold text-slate-700">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-              required
-            />
-          </div>
+            <Field.Root required>
+              <Field.Label>Email</Field.Label>
+              <Input id="email" type="email" size="lg" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            </Field.Root>
 
-          <div>
-            <label htmlFor="password" className="mb-2 block text-sm font-semibold text-slate-700">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-              required
-              minLength={6}
-            />
-          </div>
+            <Field.Root required>
+              <Field.Label>Password</Field.Label>
+              <Input
+                id="password"
+                type="password"
+                size="lg"
+                minLength={6}
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+              />            </Field.Root>
 
-          {error && <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-          {success && <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{success}</p>}
+            {error && (
+              <Alert.Root status="error">
+                <Alert.Indicator />
+                <Alert.Title>{error}</Alert.Title>
+              </Alert.Root>
+            )}
+            {success && (
+              <Alert.Root status="success">
+                <Alert.Indicator />
+                <Alert.Title>{success}</Alert.Title>
+              </Alert.Root>
+            )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-xl bg-emerald-600 px-4 py-3 text-base font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {loading ? 'Creating account...' : 'Sign up'}
-          </button>
+            <Button type="submit" colorPalette="brand" size="lg" width="full" loading={loading} loadingText="Creating account...">
+              Sign up
+            </Button>
+          </Stack>
         </form>
 
-        <p className="mt-5 text-center text-sm text-slate-600">
+        <Text mt="5" textAlign="center" fontSize="sm" color="fg.muted">
           Already have an account?{' '}
-          <Link href="/login" className="font-semibold text-indigo-700 hover:text-indigo-900">
-            Login
+          <Link asChild fontWeight="semibold" color="brand.fg">
+            <NextLink href="/login">Login</NextLink>
           </Link>
-        </p>
-      </div>
+        </Text>
+      </Box>
     </AppShell>
   );
 }
-

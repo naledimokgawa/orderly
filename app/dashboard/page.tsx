@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Badge, Box, Flex, Heading, SimpleGrid, Text } from '@chakra-ui/react';
 import { AppShell } from '../../components/AppShell';
 
 type UserSession = {
@@ -9,6 +10,27 @@ type UserSession = {
   email: string;
   role: 'admin' | 'staff';
 };
+
+function StatTile({ label, value, palette, capitalize }: { label: string; value: string; palette: string; capitalize?: boolean }) {
+  return (
+    <Box
+      rounded="2xl"
+      p="5"
+      colorPalette={palette}
+      // Dark mode: a faint tint plus a soft border, so tomato/orange don't read as error banners.
+      bg={{ base: 'colorPalette.subtle', _dark: 'colorPalette.500/10' }}
+      borderWidth="1px"
+      borderColor={{ base: 'transparent', _dark: 'colorPalette.500/25' }}
+    >
+      <Text fontSize="sm" color="colorPalette.fg">
+        {label}
+      </Text>
+      <Text mt="2" fontSize="xl" fontWeight="bold" textTransform={capitalize ? 'capitalize' : undefined} wordBreak="break-word">
+        {value}
+      </Text>
+    </Box>
+  );
+}
 
 export default function DashboardPage() {
   const [user, setUser] = useState<UserSession | null>(null);
@@ -22,64 +44,62 @@ export default function DashboardPage() {
 
   return (
     <AppShell>
-      <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Dashboard</p>
-        <h1 className="mt-3 text-4xl font-black text-slate-800">
+      <Box rounded="3xl" borderWidth="1px" bg="bg.panel" p={{ base: '6', md: '8' }} shadow="xs">
+        <Text fontSize="sm" fontWeight="semibold" textTransform="uppercase" letterSpacing="widest" color="fg.muted">
+          Dashboard
+        </Text>
+        <Heading as="h1" mt="3" size="4xl" fontWeight="black">
           Welcome back, {user?.name || 'Team member'}
-        </h1>
-        <p className="mt-4 text-lg text-slate-600">
+        </Heading>
+        <Text mt="4" fontSize="lg" color="fg.muted">
           {user?.role === 'admin'
             ? 'You are signed in as an administrator and can manage staff members and orders.'
             : 'You are signed in as a staff member and can manage daily orders.'}
-        </p>
+        </Text>
 
-        <div className="mt-8 grid gap-5 md:grid-cols-3">
-          <div className="rounded-2xl bg-indigo-50 p-5">
-            <p className="text-sm text-indigo-700">Role</p>
-            <p className="mt-2 text-xl font-bold capitalize">{user?.role || 'staff'}</p>
-          </div>
-          <div className="rounded-2xl bg-emerald-50 p-5">
-            <p className="text-sm text-emerald-700">Email</p>
-            <p className="mt-2 text-xl font-bold">{user?.email || 'N/A'}</p>
-          </div>
-          <div className="rounded-2xl bg-amber-50 p-5">
-            <p className="text-sm text-amber-700">Status</p>
-            <p className="mt-2 text-xl font-bold">Active</p>
-          </div>
-        </div>
+        <SimpleGrid mt="8" gap="5" columns={{ base: 1, md: 3 }}>
+          <StatTile label="Role" value={user?.role || 'staff'} palette="brand" capitalize />
+          <StatTile label="Email" value={user?.email || 'N/A'} palette="accent" />
+          <StatTile label="Status" value="Active" palette="orange" />
+        </SimpleGrid>
 
         {user?.role === 'admin' && (
-          <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-            <div className="flex items-center justify-between gap-4">
+          <Box mt="8" rounded="2xl" borderWidth="1px" bg="bg.muted" p="5">
+            <Flex align="center" justify="space-between" gap="4">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
+                <Text fontSize="sm" fontWeight="semibold" textTransform="uppercase" letterSpacing="widest" color="fg.muted">
                   OAuth status
-                </p>
-                <h2 className="mt-2 text-2xl font-bold text-slate-800">GitHub authentication</h2>
+                </Text>
+                <Heading as="h2" mt="2" size="2xl">
+                  GitHub authentication
+                </Heading>
               </div>
-              <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700">
+              <Badge colorPalette="green" variant="subtle" size="lg" rounded="full">
                 Enabled
-              </span>
-            </div>
+              </Badge>
+            </Flex>
 
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <div className="rounded-xl bg-white p-4">
-                <p className="text-sm text-slate-500">Local callback</p>
-                <p className="mt-2 break-all text-sm font-medium text-slate-800">
+            <SimpleGrid mt="4" gap="3" columns={{ base: 1, md: 2 }}>
+              <Box rounded="xl" bg="bg.panel" p="4">
+                <Text fontSize="sm" color="fg.muted">
+                  Local callback
+                </Text>
+                <Text mt="2" fontSize="sm" fontWeight="medium" wordBreak="break-all">
                   http://localhost:3000/api/auth/callback/github
-                </p>
-              </div>
-
-              <div className="rounded-xl bg-white p-4">
-                <p className="text-sm text-slate-500">Production callback</p>
-                <p className="mt-2 break-all text-sm font-medium text-slate-800">
+                </Text>
+              </Box>
+              <Box rounded="xl" bg="bg.panel" p="4">
+                <Text fontSize="sm" color="fg.muted">
+                  Production callback
+                </Text>
+                <Text mt="2" fontSize="sm" fontWeight="medium" wordBreak="break-all">
                   https://orderly-amber.vercel.app/api/auth/callback/github
-                </p>
-              </div>
-            </div>
-          </div>
+                </Text>
+              </Box>
+            </SimpleGrid>
+          </Box>
         )}
-      </div>
+      </Box>
     </AppShell>
   );
 }
