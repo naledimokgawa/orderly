@@ -95,7 +95,7 @@ export default function DashboardPage() {
                   Production callback
                 </Text>
                 <Text mt="2" fontSize="sm" fontWeight="medium" wordBreak="break-all">
-                  https://orderly-amber.vercel.app/api/auth/callback/github
+                  https://orderly-pied.vercel.app/api/auth/callback/github
                 </Text>
               </Box>
             </SimpleGrid>

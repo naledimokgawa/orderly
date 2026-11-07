@@ -24,7 +24,7 @@ const swaggerSpec = {
   },
   servers: [
     { url: 'http://localhost:3000/api', description: 'Local development' },
-    { url: 'https://orderly-amber.vercel.app/api', description: 'Production' },
+    { url: 'https://orderly-pied.vercel.app/api', description: 'Production' },
   ],
   paths: {
     '/auth/login': {
