@@ -32,7 +32,7 @@ export default function LoginPage() {
       }
 
       localStorage.setItem('orderly-user', JSON.stringify(data.user));
-      router.push(data.user.role === 'admin' || data.user.role === 'staff' ? '/dashboard' : '/orders');
+      router.push('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to sign in');
     } finally {

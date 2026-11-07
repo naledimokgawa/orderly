@@ -8,7 +8,7 @@ type UserSession = {
   id: number;
   name: string;
   email: string;
-  role: 'admin' | 'staff';
+  role: 'admin' | 'staff' | 'user';
 };
 
 function StatTile({ label, value, palette, capitalize }: { label: string; value: string; palette: string; capitalize?: boolean }) {
@@ -54,11 +54,13 @@ export default function DashboardPage() {
         <Text mt="4" fontSize="lg" color="fg.muted">
           {user?.role === 'admin'
             ? 'You are signed in as an administrator and can manage staff members and orders.'
-            : 'You are signed in as a staff member and can manage daily orders.'}
+            : user?.role === 'staff'
+              ? 'You are signed in as a staff member and can manage daily orders.'
+              : 'You are signed in as a user.'}
         </Text>
 
         <SimpleGrid mt="8" gap="5" columns={{ base: 1, md: 3 }}>
-          <StatTile label="Role" value={user?.role || 'staff'} palette="brand" capitalize />
+          <StatTile label="Role" value={user?.role || 'user'} palette="brand" capitalize />
           <StatTile label="Email" value={user?.email || 'N/A'} palette="accent" />
           <StatTile label="Status" value="Active" palette="orange" />
         </SimpleGrid>

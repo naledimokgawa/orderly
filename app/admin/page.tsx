@@ -8,7 +8,7 @@ type StaffMember = {
   id: number;
   name: string;
   email: string;
-  role: 'admin' | 'staff';
+  role: 'staff';
   created_at: string;
 };
 
@@ -38,16 +38,13 @@ export default function AdminPage() {
             </Heading>
           </div>
           <Badge colorPalette="brand" variant="subtle" size="lg" rounded="full">
-            {staff.length} team members
+            {staff.length} staff members
           </Badge>
         </Flex>
 
         <SimpleGrid gap="4" columns={{ base: 1, md: 2, xl: 3 }}>
           {staff.map((member) => (
             <Box key={member.id} rounded="2xl" borderWidth="1px" bg="bg.muted" p="5">
-              <Text fontSize="xs" fontWeight="semibold" textTransform="uppercase" letterSpacing="widest" color="fg.muted">
-                {member.role}
-              </Text>
               <Heading as="h2" mt="2" size="lg">
                 {member.name}
               </Heading>

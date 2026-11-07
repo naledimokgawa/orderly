@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { signDocsToken } from '../../../../../lib/auth';
 
 export async function POST(request: Request) {
   try {
@@ -18,7 +19,7 @@ export async function POST(request: Request) {
     }
 
     const response = NextResponse.json({ message: 'Docs access granted.' }, { status: 200 });
-    response.cookies.set('orderly_docs_session', 'authenticated', {
+    response.cookies.set('orderly_docs_session', signDocsToken(), {
       httpOnly: true,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',

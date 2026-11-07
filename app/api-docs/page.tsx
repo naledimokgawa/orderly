@@ -2,7 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import SwaggerUI from 'swagger-ui-react';
-import { Box, Button, Field, Flex, Heading, Input, Stack, Text } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  Field,
+  Flex,
+  Heading,
+  Input,
+  Stack,
+  Text,
+} from '@chakra-ui/react';
 import 'swagger-ui-react/swagger-ui.css';
 
 const swaggerSpec = {
@@ -11,7 +20,7 @@ const swaggerSpec = {
     title: 'Orderly API',
     version: '1.0.0',
     description:
-      'Orderly API documentation for staff authentication, order management, and admin controls.',
+      'Orderly API documentation for authentication, role-based order management, and admin controls.',
   },
   servers: [
     { url: 'http://localhost:3000/api', description: 'Local development' },
@@ -41,7 +50,7 @@ const swaggerSpec = {
     },
     '/auth/signup': {
       post: {
-        summary: 'Create a new staff account',
+        summary: 'Create a regular user account',
         requestBody: {
           required: true,
           content: {
@@ -63,11 +72,25 @@ const swaggerSpec = {
     },
     '/orders': {
       get: {
-        summary: 'Get all orders',
-        responses: { '200': { description: 'List of orders' } },
+        summary:
+          'List orders (public requests return preparing order IDs and statuses only)',
+        parameters: [
+          {
+            name: 'public',
+            in: 'query',
+            required: false,
+            schema: { type: 'boolean' },
+            description:
+              'Set true to view preparing order IDs and statuses without signing in.',
+          },
+        ],
+        responses: {
+          '200': { description: 'Orders available to the signed-in role' },
+          '401': { description: 'Authentication required' },
+        },
       },
       post: {
-        summary: 'Create an order',
+        summary: 'Create an order (staff and admins only)',
         requestBody: {
           required: true,
           content: {
@@ -77,19 +100,31 @@ const swaggerSpec = {
                 required: ['customerName', 'description', 'orderDate'],
                 properties: {
                   customerName: { type: 'string', example: 'Alicia Stone' },
-                  description: { type: 'string', example: '2 grilled chicken wraps and 1 lemonade' },
-                  orderDate: { type: 'string', format: 'date', example: '2026-10-09' },
+                  description: {
+                    type: 'string',
+                    example: '2 grilled chicken wraps and 1 lemonade',
+                  },
+                  orderDate: {
+                    type: 'string',
+                    format: 'date',
+                    example: '2026-10-09',
+                  },
                 },
               },
             },
           },
         },
-        responses: { '201': { description: 'Order created successfully' } },
+        responses: {
+          '201': { description: 'Order created successfully' },
+          '401': { description: 'Authentication required' },
+          '403': { description: 'Only staff and admins can create orders' },
+        },
       },
     },
     '/orders/{id}': {
       get: {
-        summary: 'Get one order by id',
+        summary:
+          'Get an order by id (users can only view orders being prepared)',
         parameters: [
           {
             name: 'id',
@@ -102,7 +137,7 @@ const swaggerSpec = {
         responses: { '200': { description: 'Single order' } },
       },
       patch: {
-        summary: 'Update an order',
+        summary: 'Update an order (staff and admins only)',
         parameters: [
           {
             name: 'id',
@@ -119,19 +154,34 @@ const swaggerSpec = {
               schema: {
                 type: 'object',
                 properties: {
-                  status: { type: 'string', enum: ['preparing', 'done', 'cancelled'], example: 'done' },
+                  status: {
+                    type: 'string',
+                    enum: ['preparing', 'done', 'cancelled'],
+                    example: 'done',
+                  },
                   customerName: { type: 'string', example: 'Jordan Smith' },
-                  description: { type: 'string', example: 'Updated burger order' },
-                  orderDate: { type: 'string', format: 'date', example: '2026-10-09' },
+                  description: {
+                    type: 'string',
+                    example: 'Updated burger order',
+                  },
+                  orderDate: {
+                    type: 'string',
+                    format: 'date',
+                    example: '2026-10-09',
+                  },
                 },
               },
             },
           },
         },
-        responses: { '200': { description: 'Updated order' } },
+        responses: {
+          '200': { description: 'Updated order' },
+          '401': { description: 'Authentication required' },
+          '403': { description: 'Only staff and admins can update orders' },
+        },
       },
       delete: {
-        summary: 'Delete an order',
+        summary: 'Delete an order (staff and admins only)',
         parameters: [
           {
             name: 'id',
@@ -141,7 +191,11 @@ const swaggerSpec = {
             description: 'Order ID',
           },
         ],
-        responses: { '200': { description: 'Deleted order' } },
+        responses: {
+          '200': { description: 'Deleted order' },
+          '401': { description: 'Authentication required' },
+          '403': { description: 'Only staff and admins can delete orders' },
+        },
       },
     },
     '/staff': {
@@ -194,7 +248,16 @@ export default function ApiDocsPage() {
 
   if (!isAuthenticated) {
     return (
-      <Box mx="auto" mt="12" maxW="xl" rounded="3xl" borderWidth="1px" bg="bg.panel" p="8" shadow="xs">
+      <Box
+        mx="auto"
+        mt="12"
+        maxW="xl"
+        rounded="3xl"
+        borderWidth="1px"
+        bg="bg.panel"
+        p="8"
+        shadow="xs"
+      >
         <Heading as="h1" size="3xl" fontWeight="black">
           Orderly API Docs
         </Heading>
@@ -206,12 +269,21 @@ export default function ApiDocsPage() {
           <Stack mt="6" gap="4">
             <Field.Root>
               <Field.Label>Username</Field.Label>
-              <Input size="lg" value={username} onChange={(e) => setUsername(e.target.value)} />
+              <Input
+                size="lg"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
             </Field.Root>
 
             <Field.Root>
               <Field.Label>Password</Field.Label>
-              <Input type="password" size="lg" value={password} onChange={(e) => setPassword(e.target.value)} />
+              <Input
+                type="password"
+                size="lg"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </Field.Root>
 
             {error && (

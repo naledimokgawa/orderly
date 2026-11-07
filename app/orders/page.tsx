@@ -1,53 +1,107 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import { Badge, Box, Button, Field, Flex, Heading, Input, SimpleGrid, Stack, Text } from '@chakra-ui/react';
+import {
+  Badge,
+  Box,
+  Button,
+  Field,
+  Flex,
+  Heading,
+  Input,
+  SimpleGrid,
+  Stack,
+  Text,
+} from '@chakra-ui/react';
 import { AppShell, notifyOrdersChanged } from '../../components/AppShell';
 import { OrderCard } from '../../components/OrderCard';
 
 type UserSession = {
-  id: number;
+  id: number | string;
   name: string;
   email: string;
-  role: 'admin' | 'staff';
+  role: 'admin' | 'staff' | 'user';
 };
 
 type Order = {
   id: number;
-  customer_name: string;
-  description: string;
-  order_date: string;
   status: 'preparing' | 'done' | 'cancelled';
+  customer_name?: string;
+  description?: string;
+  order_date?: string;
   created_by_name?: string;
 };
+
+type OrderStatusFilter = 'all' | Order['status'];
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [user, setUser] = useState<UserSession | null>(null);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<OrderStatusFilter>('all');
+  const [busyOrder, setBusyOrder] = useState<{
+    id: number;
+    action: 'update' | 'delete';
+  } | null>(null);
+  const [creatingOrder, setCreatingOrder] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [description, setDescription] = useState('');
-  const [orderDate, setOrderDate] = useState(new Date().toISOString().slice(0, 10));
+  const [orderDate, setOrderDate] = useState(
+    new Date().toISOString().slice(0, 10)
+  );
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
-    const raw = localStorage.getItem('orderly-user');
-    if (raw) {
-      setUser(JSON.parse(raw));
+    async function loadPage() {
+      try {
+        const sessionResponse = await fetch('/api/auth/session');
+        const sessionData = await sessionResponse.json();
+        if (!sessionResponse.ok)
+          throw new Error(
+            sessionData.message || 'Unable to verify your session.'
+          );
+        setUser(sessionData.user);
+        if (!sessionData.user) {
+          setError('Sign in to view orders.');
+          return;
+        }
+        await loadOrders();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unable to load orders.');
+      } finally {
+        setOrdersLoading(false);
+      }
     }
-    loadOrders();
+
+    loadPage();
   }, []);
 
   async function loadOrders() {
-    const response = await fetch('/api/orders');
-    const data = await response.json();
-    setOrders(data.orders || []);
+    setOrdersLoading(true);
+    try {
+      const response = await fetch('/api/orders');
+      const data = await response.json();
+      if (!response.ok)
+        throw new Error(data.message || 'Unable to load orders.');
+      setOrders(data.orders || []);
+    } finally {
+      setOrdersLoading(false);
+    }
   }
+
+  const canManageOrders = user?.role === 'admin' || user?.role === 'staff';
+  const filteredOrders =
+    statusFilter === 'all'
+      ? orders
+      : orders.filter((order) => order.status === statusFilter);
+  const publicView = user?.role === 'user';
 
   async function handleCreateOrder(e: FormEvent) {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setCreatingOrder(true);
 
     try {
       const response = await fetch('/api/orders', {
@@ -57,7 +111,8 @@ export default function OrdersPage() {
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Unable to create order');
+      if (!response.ok)
+        throw new Error(data.message || 'Unable to create order');
 
       setSuccess('Order created successfully.');
       setCustomerName('');
@@ -67,30 +122,66 @@ export default function OrdersPage() {
       notifyOrdersChanged();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to create order');
+    } finally {
+      setCreatingOrder(false);
     }
   }
 
   async function handleMarkDone(id: number) {
-    await fetch(`/api/orders/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'done' }),
-    });
-    await loadOrders();
-    notifyOrdersChanged();
+    setError('');
+    setSuccess('');
+    setBusyOrder({ id, action: 'update' });
+    try {
+      const response = await fetch(`/api/orders/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'done' }),
+      });
+      const data = await response.json();
+      if (!response.ok)
+        throw new Error(data.message || 'Unable to update order.');
+      await loadOrders();
+      setSuccess(`Order #${id} marked as done.`);
+      notifyOrdersChanged();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to update order.');
+    } finally {
+      setBusyOrder(null);
+    }
   }
 
   async function handleDelete(id: number) {
-    await fetch(`/api/orders/${id}`, { method: 'DELETE' });
-    await loadOrders();
-    notifyOrdersChanged();
+    if (!window.confirm(`Delete order #${id}? This cannot be undone.`)) return;
+    setError('');
+    setSuccess('');
+    setBusyOrder({ id, action: 'delete' });
+    try {
+      const response = await fetch(`/api/orders/${id}`, { method: 'DELETE' });
+      const data = await response.json();
+      if (!response.ok)
+        throw new Error(data.message || 'Unable to delete order.');
+      await loadOrders();
+      setSuccess(`Order #${id} deleted.`);
+      notifyOrdersChanged();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to delete order.');
+    } finally {
+      setBusyOrder(null);
+    }
   }
 
   return (
     <AppShell>
       <Stack gap="8">
-        {user && (
-          <Box as="section" rounded="3xl" borderWidth="1px" bg="bg.panel" p="6" shadow="xs">
+        {canManageOrders && (
+          <Box
+            as="section"
+            rounded="3xl"
+            borderWidth="1px"
+            bg="bg.panel"
+            p="6"
+            shadow="xs"
+          >
             <Heading as="h2" size="2xl">
               Create an order
             </Heading>
@@ -98,19 +189,40 @@ export default function OrdersPage() {
               <SimpleGrid mt="5" gap="4" columns={{ base: 1, md: 3 }}>
                 <Field.Root required>
                   <Field.Label>Customer name</Field.Label>
-                  <Input type="text" size="lg" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
+                  <Input
+                    type="text"
+                    size="lg"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                  />
                 </Field.Root>
                 <Field.Root required>
                   <Field.Label>Order description</Field.Label>
-                  <Input type="text" size="lg" value={description} onChange={(e) => setDescription(e.target.value)} />
+                  <Input
+                    type="text"
+                    size="lg"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
                 </Field.Root>
                 <Field.Root required>
                   <Field.Label>Order date</Field.Label>
-                  <Input type="date" size="lg" value={orderDate} onChange={(e) => setOrderDate(e.target.value)} />
+                  <Input
+                    type="date"
+                    size="lg"
+                    value={orderDate}
+                    onChange={(e) => setOrderDate(e.target.value)}
+                  />
                 </Field.Root>
               </SimpleGrid>
               <Flex mt="4" align="center" gap="3" wrap="wrap">
-                <Button type="submit" colorPalette="brand" size="lg">
+                <Button
+                  type="submit"
+                  colorPalette="brand"
+                  size="lg"
+                  loading={creatingOrder}
+                  loadingText="Saving order..."
+                >
                   Save order
                 </Button>
                 {error && (
@@ -128,26 +240,93 @@ export default function OrdersPage() {
           </Box>
         )}
 
-        <Box as="section" rounded="3xl" borderWidth="1px" bg="bg.panel" p="6" shadow="xs">
+        <Box
+          as="section"
+          rounded="3xl"
+          borderWidth="1px"
+          bg="bg.panel"
+          p="6"
+          shadow="xs"
+        >
           <Flex mb="6" align="center" justify="space-between">
             <Heading as="h2" size="2xl">
-              Current orders
+              {publicView ? 'Orders being prepared' : 'Current orders'}
             </Heading>
             <Badge size="lg" rounded="full" variant="subtle">
-              {orders.length} total
+              {publicView
+                ? `${orders.length} preparing`
+                : `${orders.length} total`}
             </Badge>
           </Flex>
 
-          <SimpleGrid gap="5" columns={{ base: 1, md: 2, xl: 3 }}>
-            {orders.map((order) => (
-              <OrderCard
-                key={order.id}
-                order={order}
-                onDone={user ? handleMarkDone : undefined}
-                onDelete={user ? handleDelete : undefined}
-              />
-            ))}
-          </SimpleGrid>
+          {canManageOrders && (
+            <Field.Root mb="5" maxW="xs">
+              <Field.Label>Filter by status</Field.Label>
+              <select
+                value={statusFilter}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  if (
+                    value === 'all' ||
+                    value === 'preparing' ||
+                    value === 'done' ||
+                    value === 'cancelled'
+                  ) {
+                    setStatusFilter(value);
+                  }
+                }}
+                style={{
+                  padding: '0.75rem',
+                  border: '1px solid var(--chakra-colors-border)',
+                  borderRadius: '0.5rem',
+                  background: 'var(--chakra-colors-bg-panel)',
+                }}
+              >
+                <option value="all">All statuses</option>
+                <option value="preparing">Preparing</option>
+                <option value="done">Done</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </Field.Root>
+          )}
+
+          {error && (
+            <Text mb="4" color="fg.error">
+              {error}
+            </Text>
+          )}
+          {success && (
+            <Text mb="4" color="fg.success">
+              {success}
+            </Text>
+          )}
+
+          {ordersLoading && orders.length === 0 ? (
+            <Text color="fg.muted">Loading orders...</Text>
+          ) : filteredOrders.length === 0 ? (
+            <Text color="fg.muted">
+              {orders.length === 0
+                ? publicView
+                  ? 'There are no orders being prepared right now.'
+                  : 'There are no orders yet.'
+                : 'No orders match this status.'}
+            </Text>
+          ) : (
+            <SimpleGrid gap="5" columns={{ base: 1, md: 2, xl: 3 }}>
+              {filteredOrders.map((order) => (
+                <OrderCard
+                  key={order.id}
+                  order={order}
+                  publicView={publicView}
+                  busyAction={
+                    busyOrder?.id === order.id ? busyOrder.action : undefined
+                  }
+                  onDone={canManageOrders ? handleMarkDone : undefined}
+                  onDelete={canManageOrders ? handleDelete : undefined}
+                />
+              ))}
+            </SimpleGrid>
+          )}
         </Box>
       </Stack>
     </AppShell>

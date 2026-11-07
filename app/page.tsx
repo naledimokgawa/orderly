@@ -28,9 +28,12 @@ export default function HomePage() {
             </Text>
           </Stack>
 
-          <Flex mt="10" justify="center">
+          <Flex mt="10" justify="center" gap="4" wrap="wrap">
             <Button asChild colorPalette="brand" size="xl" rounded="xl" px="8" shadow="md">
               <NextLink href="/login">Get Started</NextLink>
+            </Button>
+            <Button asChild variant="outline" colorPalette="brand" size="xl" rounded="xl" px="8">
+              <NextLink href="/orders">View orders</NextLink>
             </Button>
           </Flex>
         </Box>

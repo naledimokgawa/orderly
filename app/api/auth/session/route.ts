@@ -1,31 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '../../../../lib/auth';
+import { authenticateRequest } from '../../../../lib/request-auth';
 
 export async function GET(request: NextRequest) {
-  const token = request.cookies.get('orderly_token')?.value;
-  const docsSession = request.cookies.get('orderly_docs_session')?.value;
-
-  if (token) {
-    try {
-      const payload = verifyToken(token);
-      return NextResponse.json({ user: payload }, { status: 200 });
-    } catch {
-      // fall through to docs session check below
-    }
+  const authentication = await authenticateRequest(request);
+  if (authentication.ok) {
+    const user = authentication.user.id === null
+      ? { ...authentication.user, id: 'docs-admin' }
+      : authentication.user;
+    return NextResponse.json({ user }, { status: 200 });
   }
 
-  if (docsSession === 'authenticated') {
-    return NextResponse.json(
-      {
-        user: {
-          id: 'docs-admin',
-          email: process.env.DOCS_USERNAME || 'admin',
-          role: 'admin',
-        },
-      },
-      { status: 200 }
-    );
+  if (authentication.response.status === 401) {
+    return NextResponse.json({ user: null }, { status: 200 });
   }
 
-  return NextResponse.json({ user: null }, { status: 200 });
+  return authentication.response;
 }

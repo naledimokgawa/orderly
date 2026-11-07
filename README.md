@@ -19,7 +19,8 @@ The app includes secure authentication, role-based access, order creation and ma
 ## Features
 
 - User signup and login
-- Role-based access for staff and admin users
+- Self-service account deletion
+- Role-based dashboards for users, staff, and admins
 - Order list and detail views
 - Create, update, and delete order flows
 - Admin staff management view

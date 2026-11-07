@@ -25,7 +25,7 @@ type UserSession = {
   id: number;
   name: string;
   email: string;
-  role: 'admin' | 'staff';
+  role: 'admin' | 'staff' | 'user';
 };
 
 type NavItem = { href: string; label: string };
@@ -95,6 +95,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserSession | null>(null);
   const [preparingCount, setPreparingCount] = useState<number | undefined>(undefined);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   useEffect(() => {
     const raw = localStorage.getItem('orderly-user');
@@ -145,19 +146,49 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     router.push('/login');
   };
 
-  const visibleNav: NavItem[] =
-    user?.role === 'admin'
+  const handleDeleteAccount = async () => {
+    if (!user || !window.confirm(`Permanently delete the account for ${user.email}? This cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingAccount(true);
+    try {
+      const response = await fetch('/api/auth/account', { method: 'DELETE' });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Unable to delete your account.');
+      }
+
+      localStorage.removeItem('orderly-user');
+      setUser(null);
+      router.push('/signup');
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'Unable to delete your account.');
+    } finally {
+      setDeletingAccount(false);
+    }
+  };
+
+  const isPublicPage = pathname === '/' || pathname === '/login' || pathname === '/signup';
+  const visibleNav: NavItem[] = !user || isPublicPage
+    ? []
+    : user.role === 'admin'
       ? [
           { href: '/orders', label: 'Orders' },
           { href: '/dashboard', label: 'Dashboard' },
           { href: '/admin', label: 'Staff Members' },
+          { href: '/admin/users', label: 'Users' },
         ]
       : user?.role === 'staff'
         ? [
             { href: '/orders', label: 'Orders' },
             { href: '/dashboard', label: 'Dashboard' },
           ]
-        : [{ href: '/orders', label: 'Orders' }];
+        : [
+            { href: '/orders', label: 'Orders' },
+            { href: '/dashboard', label: 'Dashboard' },
+          ];
 
   const guestNav: NavItem[] = user
     ? []
@@ -206,7 +237,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </HStack>
 
             <HStack gap="2">
-              {user && (
+              {user && user.role !== 'user' && !isPublicPage && (
                 <>
                   <Button asChild colorPalette="brand" size="sm" hideBelow="md">
                     <NextLink href="/orders/new">
@@ -248,37 +279,50 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         <Menu.Item value="logout" onClick={handleLogout} color="fg.error" _hover={{ bg: 'bg.error', color: 'fg.error' }}>
                           Logout
                         </Menu.Item>
+                        {Number.isSafeInteger(user.id) && (
+                          <Menu.Item
+                            value="delete-account"
+                            onClick={handleDeleteAccount}
+                            disabled={deletingAccount}
+                            color="fg.error"
+                            _hover={{ bg: 'bg.error', color: 'fg.error' }}
+                          >
+                            {deletingAccount ? 'Deleting account...' : 'Delete my account'}
+                          </Menu.Item>
+                        )}
                       </Menu.Content>
                     </Menu.Positioner>
                   </Portal>
                 </Menu.Root>
               )}
 
-              <Drawer.Root open={drawerOpen} onOpenChange={(e) => setDrawerOpen(e.open)} placement="end" size="xs">
-                <Drawer.Trigger asChild>
-                  <IconButton variant="ghost" size="sm" hideFrom="md" aria-label="Open menu">
-                    <MenuIcon />
-                  </IconButton>
-                </Drawer.Trigger>
-                <Portal>
-                  <Drawer.Backdrop />
-                  <Drawer.Positioner>
-                    <Drawer.Content>
-                      <Drawer.Header>
-                        <Drawer.Title color="brand.fg">Orderly</Drawer.Title>
-                      </Drawer.Header>
-                      <Drawer.Body>
-                        <Stack as="nav" gap="1" aria-label="Main navigation">
-                          {renderNav(true)}
-                        </Stack>
-                      </Drawer.Body>
-                      <Drawer.CloseTrigger asChild>
-                        <CloseButton size="sm" />
-                      </Drawer.CloseTrigger>
-                    </Drawer.Content>
-                  </Drawer.Positioner>
-                </Portal>
-              </Drawer.Root>
+              {(!user || !isPublicPage) && (
+                <Drawer.Root open={drawerOpen} onOpenChange={(e) => setDrawerOpen(e.open)} placement="end" size="xs">
+                  <Drawer.Trigger asChild>
+                    <IconButton variant="ghost" size="sm" hideFrom="md" aria-label="Open menu">
+                      <MenuIcon />
+                    </IconButton>
+                  </Drawer.Trigger>
+                  <Portal>
+                    <Drawer.Backdrop />
+                    <Drawer.Positioner>
+                      <Drawer.Content>
+                        <Drawer.Header>
+                          <Drawer.Title color="brand.fg">Orderly</Drawer.Title>
+                        </Drawer.Header>
+                        <Drawer.Body>
+                          <Stack as="nav" gap="1" aria-label="Main navigation">
+                            {renderNav(true)}
+                          </Stack>
+                        </Drawer.Body>
+                        <Drawer.CloseTrigger asChild>
+                          <CloseButton size="sm" />
+                        </Drawer.CloseTrigger>
+                      </Drawer.Content>
+                    </Drawer.Positioner>
+                  </Portal>
+                </Drawer.Root>
+              )}
             </HStack>
           </Flex>
         </Container>

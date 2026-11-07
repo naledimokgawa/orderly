@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     const passwordHash = await hashPassword(password);
     const result = await query(
       'INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role',
-      [name, email, passwordHash, 'staff']
+      [name, email, passwordHash, 'user']
     );
 
     return NextResponse.json({ user: sanitizeUser(result.rows[0]) }, { status: 201 });

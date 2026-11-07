@@ -62,7 +62,7 @@ export async function GET(request: Request) {
     if (!userRow) {
       const result = await query(
         'INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role',
-        [githubUser.name || githubUser.login || 'GitHub User', githubEmail, await hashPassword(`github-${Date.now()}`), 'staff']
+        [githubUser.name || githubUser.login || 'GitHub User', githubEmail, await hashPassword(`github-${Date.now()}`), 'user']
       );
       userRow = result.rows[0];
     }

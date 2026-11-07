@@ -3,10 +3,15 @@ CREATE TABLE IF NOT EXISTS users (
   name VARCHAR(120) NOT NULL,
   email VARCHAR(255) NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
-  role VARCHAR(20) NOT NULL DEFAULT 'staff' CHECK (role IN ('admin', 'staff')),
+  role VARCHAR(20) NOT NULL DEFAULT 'user',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE users ALTER COLUMN role SET DEFAULT 'user';
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
+ALTER TABLE users
+  ADD CONSTRAINT users_role_check CHECK (role IN ('admin', 'staff', 'user'));
 
 CREATE TABLE IF NOT EXISTS orders (
   id SERIAL PRIMARY KEY,
@@ -21,11 +26,15 @@ CREATE TABLE IF NOT EXISTS orders (
 
 INSERT INTO users (name, email, password_hash, role)
 VALUES
-  ('Admin User', 'admin@gmail.com', '$2b$10$nfypYvLER0NxfJyaDMnameoKtx19ItchoysoH0bkOZ4qNLSNfaPEy', 'admin'),
-  ('Staff Member 1', 'staffmember1@gmail.com', '$2b$10$NeOe/RZBj0kLm78TSFFS4.TMyS682QOz08KpXUvVEnClk02nWwXhm', 'staff'),
-  ('Staff Member 2', 'staffmember2@gmail.com', '$2b$10$eSxDMhRX/xgXlHAH/T6QI.FtPslpnhM3JuY3A74GG23yhs2Y7lmP6', 'staff'),
-  ('Staff Member 3', 'staffmember3@gmail.com', '$2b$10$Xrawt4hYhQftlM9/XzkZ3.7sM0SN2oDyt7U68HLUgmRiRBV2WK9eC', 'staff')
-ON CONFLICT (email) DO NOTHING;
+  ('Admin User', 'admin@gmail.com', '$2b$10$kvUr7s8lWaaBSr.RiTSW3.b6Pg9h3FFWHJrShBuncYsg2/bIJIkuK', 'admin'),
+  ('Staff Member 1', 'staffmember1@gmail.com', '$2b$10$PzOmzncK5XXA2A7FQih7LuVQ7uO7A/3RxlRl2nzbojEWqsLGwG1qy', 'staff'),
+  ('Staff Member 2', 'staffmember2@gmail.com', '$2b$10$dqFBiKaNey7I9p7zM4QvxOdRdl0K3JrWAUt78H5kMGN8XTOHpdkti', 'staff'),
+  ('Staff Member 3', 'staffmember3@gmail.com', '$2b$10$B9duKpOtw.6rDAKug2JF/eOyK4R8S3yTTKyc0MDwFLZcBXrLAcBO.', 'staff')
+ON CONFLICT (email) DO UPDATE
+SET name = EXCLUDED.name,
+    password_hash = EXCLUDED.password_hash,
+    role = EXCLUDED.role,
+    updated_at = NOW();
 
 INSERT INTO orders (customer_name, description, order_date, status, created_by)
 VALUES
