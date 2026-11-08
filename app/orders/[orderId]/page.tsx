@@ -9,6 +9,7 @@ import { statusPalette } from '../../../components/OrderCard';
 type Order = {
   id: number;
   customer_name?: string;
+  customer_first_name?: string;
   description?: string;
   order_date?: string;
   status: 'preparing' | 'done' | 'cancelled';
@@ -31,7 +32,8 @@ export default function OrderDetailPage() {
         const data = await response.json();
         if (!response.ok)
           throw new Error(data.message || 'Unable to load order.');
-        setIsPublicView(sessionData.user?.role === 'user');
+        const role = sessionData.user?.role;
+        setIsPublicView(role !== 'admin' && role !== 'staff');
         setOrder(data.order || null);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unable to load order.');
@@ -89,6 +91,14 @@ export default function OrderDetailPage() {
             </Heading>
 
             <Stack mt="6" gap="4" color="fg.muted">
+              {isPublicView && order.customer_first_name && (
+                <Text>
+                  <Text as="span" fontWeight="semibold" color="fg">
+                    Name:
+                  </Text>{' '}
+                  {order.customer_first_name}
+                </Text>
+              )}
               {!isPublicView && order.description && (
                 <Text>
                   <Text as="span" fontWeight="semibold" color="fg">

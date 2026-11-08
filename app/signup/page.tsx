@@ -18,6 +18,7 @@ import {
 } from '@chakra-ui/react';
 import { AppShell } from '../../components/AppShell';
 import { OrderCard } from '../../components/OrderCard';
+import { PasswordInput } from '../../components/ui/password-input';
 
 type PreparingOrder = {
   id: number;
@@ -129,9 +130,8 @@ export default function SignupPage() {
 
               <Field.Root required>
                 <Field.Label>Password</Field.Label>
-                <Input
+                <PasswordInput
                   id="password"
-                  type="password"
                   size="lg"
                   minLength={6}
                   value={form.password}

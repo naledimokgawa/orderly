@@ -1,61 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateRequest } from '../../../lib/request-auth';
 import { query } from '../../../lib/db';
+import { PUBLIC_ORDER_COLUMNS } from '../../../lib/public-orders';
+
+async function publicOrdersResponse() {
+  try {
+    const result = await query(
+      `SELECT ${PUBLIC_ORDER_COLUMNS}
+       FROM orders
+       WHERE status = 'preparing'
+       ORDER BY created_at DESC`
+    );
+
+    return NextResponse.json({ orders: result.rows }, { status: 200 });
+  } catch (error) {
+    console.error('fetch public orders error', error);
+    return NextResponse.json(
+      { message: 'Unable to load current orders.' },
+      { status: 500 }
+    );
+  }
+}
 
 export async function GET(request: NextRequest) {
   if (request.nextUrl.searchParams.get('public') === 'true') {
-    try {
-      const result = await query(
-        `SELECT id, status
-         FROM orders
-         WHERE status = 'preparing'
-         ORDER BY created_at DESC`
-      );
-
-      return NextResponse.json({ orders: result.rows }, { status: 200 });
-    } catch (error) {
-      console.error('fetch public orders error', error);
-      return NextResponse.json(
-        { message: 'Unable to load current orders.' },
-        { status: 500 }
-      );
-    }
+    return publicOrdersResponse();
   }
 
   const authentication = await authenticateRequest(request);
   if (!authentication.ok && authentication.response.status !== 401)
     return authentication.response;
 
+  // Guests and customer accounts only see the public view.
+  if (!authentication.ok || authentication.user.role === 'user') {
+    return publicOrdersResponse();
+  }
+
   try {
-    if (!authentication.ok) {
-      const result = await query(
-        `SELECT id, status
-         FROM orders
-         WHERE status = 'preparing'
-         ORDER BY created_at DESC`
-      );
-
-      return NextResponse.json({ orders: result.rows }, { status: 200 });
-    }
-
-    if (authentication.user.role === 'user') {
-      const result = await query(
-        `SELECT id, status
-         FROM orders
-         WHERE status = 'preparing'
-         ORDER BY created_at DESC`
-      );
-
-      return NextResponse.json({ orders: result.rows }, { status: 200 });
-    }
 
     const result = await query(
       `SELECT o.*, u.name AS created_by_name
        FROM orders o
        LEFT JOIN users u ON u.id = o.created_by
-       WHERE ($1 IN ('admin', 'staff') OR o.status = 'preparing')
-       ORDER BY o.created_at DESC`,
-      [authentication.user.role]
+       ORDER BY o.created_at DESC`
     );
 
     return NextResponse.json({ orders: result.rows }, { status: 200 });

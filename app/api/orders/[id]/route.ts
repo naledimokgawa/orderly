@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateRequest } from '../../../../lib/request-auth';
 import { query } from '../../../../lib/db';
+import { PUBLIC_ORDER_COLUMNS } from '../../../../lib/public-orders';
 
 function parseOrderId(id: string) {
   const parsedId = Number(id);
@@ -12,7 +13,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const authentication = await authenticateRequest(request);
-  if (!authentication.ok) return authentication.response;
+  if (!authentication.ok && authentication.response.status !== 401)
+    return authentication.response;
 
   const { id } = await params;
   const orderId = parseOrderId(id);
@@ -21,9 +23,10 @@ export async function GET(
   }
 
   try {
-    if (authentication.user.role === 'user') {
+    // Guests and customer accounts only see the public view.
+    if (!authentication.ok || authentication.user.role === 'user') {
       const result = await query(
-        `SELECT id, status
+        `SELECT ${PUBLIC_ORDER_COLUMNS}
          FROM orders
          WHERE id = $1 AND status = 'preparing'`,
         [orderId]

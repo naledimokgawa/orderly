@@ -12,6 +12,7 @@ type Order = {
   id: number;
   status: 'preparing' | 'done' | 'cancelled';
   customer_name?: string;
+  customer_first_name?: string;
   description?: string;
   order_date?: string;
   created_by_name?: string;
@@ -70,6 +71,12 @@ export function OrderCard({
             {order.status}
           </Badge>
         </Flex>
+
+        {publicView && order.customer_first_name && (
+          <Text fontSize="sm" color="fg" fontWeight="semibold">
+            {order.customer_first_name}
+          </Text>
+        )}
 
         {!publicView && (
           <>

@@ -27,6 +27,7 @@ type Order = {
   id: number;
   status: 'preparing' | 'done' | 'cancelled';
   customer_name?: string;
+  customer_first_name?: string;
   description?: string;
   order_date?: string;
   created_by_name?: string;
@@ -62,10 +63,6 @@ export default function OrdersPage() {
             sessionData.message || 'Unable to verify your session.'
           );
         setUser(sessionData.user);
-        if (!sessionData.user) {
-          setError('Sign in to view orders.');
-          return;
-        }
         await loadOrders();
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unable to load orders.');
@@ -95,7 +92,7 @@ export default function OrdersPage() {
     statusFilter === 'all'
       ? orders
       : orders.filter((order) => order.status === statusFilter);
-  const publicView = user?.role === 'user';
+  const publicView = !canManageOrders;
 
   async function handleCreateOrder(e: FormEvent) {
     e.preventDefault();

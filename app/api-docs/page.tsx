@@ -13,6 +13,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import 'swagger-ui-react/swagger-ui.css';
+import { PasswordInput } from '../../components/ui/password-input';
 
 const swaggerSpec = {
   openapi: '3.0.0',
@@ -278,8 +279,7 @@ export default function ApiDocsPage() {
 
             <Field.Root>
               <Field.Label>Password</Field.Label>
-              <Input
-                type="password"
+              <PasswordInput
                 size="lg"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

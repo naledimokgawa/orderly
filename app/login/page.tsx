@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { Alert, Box, Button, Field, Heading, Input, Link, Stack, Text } from '@chakra-ui/react';
 import { AppShell } from '../../components/AppShell';
+import { PasswordInput } from '../../components/ui/password-input';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -56,7 +57,7 @@ export default function LoginPage() {
 
             <Field.Root required>
               <Field.Label>Password</Field.Label>
-              <Input id="password" type="password" size="lg" value={password} onChange={(e) => setPassword(e.target.value)} />
+              <PasswordInput id="password" size="lg" value={password} onChange={(e) => setPassword(e.target.value)} />
             </Field.Root>
 
             {error && (

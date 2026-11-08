@@ -193,6 +193,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const guestNav: NavItem[] = user
     ? []
     : [
+        { href: '/orders', label: 'Orders' },
         { href: '/login', label: 'Login' },
         { href: '/signup', label: 'Signup' },
       ];
