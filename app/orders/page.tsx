@@ -20,6 +20,7 @@ import {
   ORDER_STATUSES,
   ORDER_STATUS_LABELS,
   OrderStatus,
+  capOrdersForBoard,
   isOrderStatus,
 } from '../../lib/order-status';
 
@@ -87,7 +88,7 @@ export default function OrdersPage() {
   const canManageOrders = user?.role === 'admin' || user?.role === 'staff';
   const filteredOrders =
     statusFilter === 'all'
-      ? orders
+      ? capOrdersForBoard(orders)
       : orders.filter((order) => order.status === statusFilter);
   const publicView = !canManageOrders;
 
@@ -248,7 +249,9 @@ export default function OrdersPage() {
             </Heading>
             {!publicView && (
               <Badge size="lg" rounded="full" variant="subtle">
-                {orders.length} total
+                {filteredOrders.length === orders.length
+                  ? `${orders.length} total`
+                  : `Showing ${filteredOrders.length} of ${orders.length}`}
               </Badge>
             )}
           </Flex>
@@ -271,7 +274,7 @@ export default function OrdersPage() {
                   background: 'var(--chakra-colors-bg-panel)',
                 }}
               >
-                <option value="all">All statuses</option>
+                <option value="all">Latest (3 pending, 3 preparing, 4 done)</option>
                 {ORDER_STATUSES.map((status) => (
                   <option key={status} value={status}>
                     {ORDER_STATUS_LABELS[status]}

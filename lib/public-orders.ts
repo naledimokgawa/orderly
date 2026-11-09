@@ -1,3 +1,5 @@
+import { BOARD_LIMITS } from './order-status';
+
 /**
  * Columns that are safe to expose to guests and customer accounts:
  * the tracking number, status and the customer's first name only
@@ -9,12 +11,10 @@ export const PUBLIC_ORDER_COLUMNS = `id, status,
 /** Orders a guest can look up by tracking number. Cancelled orders are never shown. */
 export const PUBLIC_ORDER_FILTER = `status IN ('pending', 'preparing', 'done')`;
 
-/** How many orders of each status the public board shows (10 in total). */
-export const PUBLIC_BOARD_LIMITS = { pending: 3, preparing: 3, done: 4 } as const;
-
 /**
- * The public board: the 3 oldest pending orders (next in the queue),
- * the 3 oldest preparing orders, and the 4 most recently finished orders.
+ * The public board, capped by BOARD_LIMITS: the oldest pending and preparing
+ * orders (next in the queue) and the most recently finished done orders.
+ * Mirrors capOrdersForBoard in order-status.ts.
  */
 export const PUBLIC_BOARD_QUERY = `
   SELECT ${PUBLIC_ORDER_COLUMNS}
@@ -27,7 +27,7 @@ export const PUBLIC_BOARD_QUERY = `
     FROM orders o
     WHERE ${PUBLIC_ORDER_FILTER}
   ) ranked
-  WHERE (status = 'pending' AND board_rank <= ${PUBLIC_BOARD_LIMITS.pending})
-     OR (status = 'preparing' AND board_rank <= ${PUBLIC_BOARD_LIMITS.preparing})
-     OR (status = 'done' AND board_rank <= ${PUBLIC_BOARD_LIMITS.done})
+  WHERE (status = 'pending' AND board_rank <= ${BOARD_LIMITS.pending})
+     OR (status = 'preparing' AND board_rank <= ${BOARD_LIMITS.preparing})
+     OR (status = 'done' AND board_rank <= ${BOARD_LIMITS.done})
   ORDER BY status, board_rank`;

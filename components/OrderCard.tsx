@@ -22,6 +22,8 @@ export type Order = {
   description?: string;
   order_date?: string;
   created_by_name?: string;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export function OrderCard({
