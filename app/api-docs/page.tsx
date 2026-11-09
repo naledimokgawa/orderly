@@ -74,7 +74,7 @@ const swaggerSpec = {
     '/orders': {
       get: {
         summary:
-          'List orders (public requests return pending, preparing and recently done order IDs and statuses only)',
+          'List orders (public requests return up to 3 pending, 3 preparing and 4 recently done orders, IDs and statuses only)',
         parameters: [
           {
             name: 'public',
@@ -82,7 +82,7 @@ const swaggerSpec = {
             required: false,
             schema: { type: 'boolean' },
             description:
-              'Set true to view pending, preparing and recently done order IDs and statuses without signing in.',
+              'Set true to view the public board (3 pending, 3 preparing, 4 done) without signing in.',
           },
         ],
         responses: {
@@ -125,7 +125,7 @@ const swaggerSpec = {
     '/orders/{id}': {
       get: {
         summary:
-          'Get an order by id (users can view pending, preparing and recently done orders)',
+          'Get an order by id (users can view pending, preparing and done orders)',
         parameters: [
           {
             name: 'id',

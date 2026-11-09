@@ -1,16 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateRequest } from '../../../lib/request-auth';
 import { query } from '../../../lib/db';
-import { PUBLIC_ORDER_COLUMNS, PUBLIC_ORDER_FILTER } from '../../../lib/public-orders';
+import { PUBLIC_BOARD_QUERY } from '../../../lib/public-orders';
 
 async function publicOrdersResponse() {
   try {
-    const result = await query(
-      `SELECT ${PUBLIC_ORDER_COLUMNS}
-       FROM orders
-       WHERE ${PUBLIC_ORDER_FILTER}
-       ORDER BY created_at DESC`
-    );
+    const result = await query(PUBLIC_BOARD_QUERY);
 
     return NextResponse.json({ orders: result.rows }, { status: 200 });
   } catch (error) {
