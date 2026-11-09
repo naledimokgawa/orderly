@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateRequest } from '../../../../lib/request-auth';
 import { query } from '../../../../lib/db';
-import { PUBLIC_ORDER_COLUMNS } from '../../../../lib/public-orders';
+import { PUBLIC_ORDER_COLUMNS, PUBLIC_ORDER_FILTER } from '../../../../lib/public-orders';
+import { isOrderStatus } from '../../../../lib/order-status';
 
 function parseOrderId(id: string) {
   const parsedId = Number(id);
@@ -28,7 +29,7 @@ export async function GET(
       const result = await query(
         `SELECT ${PUBLIC_ORDER_COLUMNS}
          FROM orders
-         WHERE id = $1 AND status = 'preparing'`,
+         WHERE id = $1 AND ${PUBLIC_ORDER_FILTER}`,
         [orderId]
       );
 
@@ -100,11 +101,7 @@ export async function PATCH(
   let index = 1;
 
   if (body.status !== undefined) {
-    if (
-      body.status !== 'preparing' &&
-      body.status !== 'done' &&
-      body.status !== 'cancelled'
-    ) {
+    if (!isOrderStatus(body.status)) {
       return NextResponse.json(
         { message: 'Invalid order status.' },
         { status: 400 }

@@ -4,16 +4,8 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Badge, Box, Heading, Stack, Text } from '@chakra-ui/react';
 import { AppShell } from '../../../components/AppShell';
-import { statusPalette } from '../../../components/OrderCard';
-
-type Order = {
-  id: number;
-  customer_name?: string;
-  customer_first_name?: string;
-  description?: string;
-  order_date?: string;
-  status: 'preparing' | 'done' | 'cancelled';
-};
+import { Order } from '../../../components/OrderCard';
+import { ORDER_STATUS_LABELS, ORDER_STATUS_PALETTE } from '../../../lib/order-status';
 
 export default function OrderDetailPage() {
   const params = useParams();
@@ -120,12 +112,11 @@ export default function OrderDetailPage() {
                   Status:
                 </Text>{' '}
                 <Badge
-                  colorPalette={statusPalette[order.status]}
+                  colorPalette={ORDER_STATUS_PALETTE[order.status]}
                   variant="subtle"
                   rounded="full"
-                  textTransform="capitalize"
                 >
-                  {order.status}
+                  {ORDER_STATUS_LABELS[order.status]}
                 </Badge>
               </Text>
             </Stack>

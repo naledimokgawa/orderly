@@ -14,7 +14,14 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { AppShell, notifyOrdersChanged } from '../../components/AppShell';
-import { OrderCard } from '../../components/OrderCard';
+import { Order, OrderCard } from '../../components/OrderCard';
+import { PublicOrderBoard } from '../../components/PublicOrderBoard';
+import {
+  ORDER_STATUSES,
+  ORDER_STATUS_LABELS,
+  OrderStatus,
+  isOrderStatus,
+} from '../../lib/order-status';
 
 type UserSession = {
   id: number | string;
@@ -23,17 +30,7 @@ type UserSession = {
   role: 'admin' | 'staff' | 'user';
 };
 
-type Order = {
-  id: number;
-  status: 'preparing' | 'done' | 'cancelled';
-  customer_name?: string;
-  customer_first_name?: string;
-  description?: string;
-  order_date?: string;
-  created_by_name?: string;
-};
-
-type OrderStatusFilter = 'all' | Order['status'];
+type OrderStatusFilter = 'all' | OrderStatus;
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -124,7 +121,7 @@ export default function OrdersPage() {
     }
   }
 
-  async function handleMarkDone(id: number) {
+  async function handleAdvance(id: number, status: OrderStatus) {
     setError('');
     setSuccess('');
     setBusyOrder({ id, action: 'update' });
@@ -132,13 +129,13 @@ export default function OrdersPage() {
       const response = await fetch(`/api/orders/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'done' }),
+        body: JSON.stringify({ status }),
       });
       const data = await response.json();
       if (!response.ok)
         throw new Error(data.message || 'Unable to update order.');
       await loadOrders();
-      setSuccess(`Order #${id} marked as done.`);
+      setSuccess(`Order #${id} is now ${ORDER_STATUS_LABELS[status].toLowerCase()}.`);
       notifyOrdersChanged();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to update order.');
@@ -247,13 +244,13 @@ export default function OrdersPage() {
         >
           <Flex mb="6" align="center" justify="space-between">
             <Heading as="h2" size="2xl">
-              {publicView ? 'Orders being prepared' : 'Current orders'}
+              {publicView ? 'Order status' : 'Current orders'}
             </Heading>
-            <Badge size="lg" rounded="full" variant="subtle">
-              {publicView
-                ? `${orders.length} preparing`
-                : `${orders.length} total`}
-            </Badge>
+            {!publicView && (
+              <Badge size="lg" rounded="full" variant="subtle">
+                {orders.length} total
+              </Badge>
+            )}
           </Flex>
 
           {canManageOrders && (
@@ -263,12 +260,7 @@ export default function OrdersPage() {
                 value={statusFilter}
                 onChange={(event) => {
                   const value = event.target.value;
-                  if (
-                    value === 'all' ||
-                    value === 'preparing' ||
-                    value === 'done' ||
-                    value === 'cancelled'
-                  ) {
+                  if (value === 'all' || isOrderStatus(value)) {
                     setStatusFilter(value);
                   }
                 }}
@@ -280,9 +272,11 @@ export default function OrdersPage() {
                 }}
               >
                 <option value="all">All statuses</option>
-                <option value="preparing">Preparing</option>
-                <option value="done">Done</option>
-                <option value="cancelled">Cancelled</option>
+                {ORDER_STATUSES.map((status) => (
+                  <option key={status} value={status}>
+                    {ORDER_STATUS_LABELS[status]}
+                  </option>
+                ))}
               </select>
             </Field.Root>
           )}
@@ -300,12 +294,12 @@ export default function OrdersPage() {
 
           {ordersLoading && orders.length === 0 ? (
             <Text color="fg.muted">Loading orders...</Text>
+          ) : publicView ? (
+            <PublicOrderBoard orders={orders} />
           ) : filteredOrders.length === 0 ? (
             <Text color="fg.muted">
               {orders.length === 0
-                ? publicView
-                  ? 'There are no orders being prepared right now.'
-                  : 'There are no orders yet.'
+                ? 'There are no orders yet.'
                 : 'No orders match this status.'}
             </Text>
           ) : (
@@ -314,11 +308,10 @@ export default function OrdersPage() {
                 <OrderCard
                   key={order.id}
                   order={order}
-                  publicView={publicView}
                   busyAction={
                     busyOrder?.id === order.id ? busyOrder.action : undefined
                   }
-                  onDone={canManageOrders ? handleMarkDone : undefined}
+                  onAdvance={canManageOrders ? handleAdvance : undefined}
                   onDelete={canManageOrders ? handleDelete : undefined}
                 />
               ))}

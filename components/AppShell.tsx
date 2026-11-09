@@ -80,7 +80,7 @@ function NavLink({
       <NextLink href={item.href} onClick={onNavigate} aria-current={active ? 'page' : undefined}>
         {item.label}
         {count !== undefined && count > 0 && (
-          <Badge colorPalette="accent" variant="solid" size="sm" rounded="full" ms="1.5" title={`${count} orders preparing`}>
+          <Badge colorPalette="accent" variant="solid" size="sm" rounded="full" ms="1.5" title={`${count} active orders (pending or preparing)`}>
             {count}
           </Badge>
         )}
@@ -118,7 +118,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         .then((data: { orders?: { status: string }[] } | null) => {
           if (cancelled || !data) return;
           const orders = data.orders || [];
-          setPreparingCount(orders.filter((order) => order.status === 'preparing').length);
+          setPreparingCount(
+            orders.filter((order) => order.status === 'pending' || order.status === 'preparing').length
+          );
         })
         .catch(() => {
           // Leave the count as it was if the request fails.

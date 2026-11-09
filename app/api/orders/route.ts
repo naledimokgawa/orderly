@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateRequest } from '../../../lib/request-auth';
 import { query } from '../../../lib/db';
-import { PUBLIC_ORDER_COLUMNS } from '../../../lib/public-orders';
+import { PUBLIC_ORDER_COLUMNS, PUBLIC_ORDER_FILTER } from '../../../lib/public-orders';
 
 async function publicOrdersResponse() {
   try {
     const result = await query(
       `SELECT ${PUBLIC_ORDER_COLUMNS}
        FROM orders
-       WHERE status = 'preparing'
+       WHERE ${PUBLIC_ORDER_FILTER}
        ORDER BY created_at DESC`
     );
 
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
 
     const result = await query(
       `INSERT INTO orders (customer_name, description, order_date, status, created_by)
-       VALUES ($1, $2, $3, 'preparing', $4)
+       VALUES ($1, $2, $3, 'pending', $4)
        RETURNING *`,
       [customerName, description, orderDate, authentication.user.id]
     );

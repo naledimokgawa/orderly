@@ -7,10 +7,16 @@ import {
   Heading,
   Text,
 } from '@chakra-ui/react';
+import {
+  NEXT_ORDER_STATUS,
+  ORDER_STATUS_LABELS,
+  ORDER_STATUS_PALETTE,
+  OrderStatus,
+} from '../lib/order-status';
 
-type Order = {
+export type Order = {
   id: number;
-  status: 'preparing' | 'done' | 'cancelled';
+  status: OrderStatus;
   customer_name?: string;
   customer_first_name?: string;
   description?: string;
@@ -18,25 +24,21 @@ type Order = {
   created_by_name?: string;
 };
 
-export const statusPalette: Record<Order['status'], string> = {
-  preparing: 'orange',
-  done: 'green',
-  cancelled: 'red',
-};
-
 export function OrderCard({
   order,
-  onDone,
+  onAdvance,
   onDelete,
   publicView = false,
   busyAction,
 }: {
   order: Order;
-  onDone?: (id: number) => void;
+  onAdvance?: (id: number, status: OrderStatus) => void;
   onDelete?: (id: number) => void;
   publicView?: boolean;
   busyAction?: 'update' | 'delete';
 }) {
+  const nextStep = NEXT_ORDER_STATUS[order.status];
+
   return (
     <Card.Root
       rounded="2xl"
@@ -62,13 +64,12 @@ export function OrderCard({
             </Heading>
           </div>
           <Badge
-            colorPalette={statusPalette[order.status]}
+            colorPalette={ORDER_STATUS_PALETTE[order.status]}
             variant="subtle"
             rounded="full"
             px="2.5"
-            textTransform="capitalize"
           >
-            {order.status}
+            {ORDER_STATUS_LABELS[order.status]}
           </Badge>
         </Flex>
 
@@ -99,17 +100,17 @@ export function OrderCard({
         )}
       </Card.Body>
 
-      {(onDone || onDelete) && (
+      {(onAdvance || onDelete) && (
         <Card.Footer>
           <HStack gap="3">
-            {onDone && order.status !== 'done' && (
+            {onAdvance && nextStep && (
               <Button
                 size="sm"
                 colorPalette="brand"
-                onClick={() => onDone(order.id)}
+                onClick={() => onAdvance(order.id, nextStep.status)}
                 disabled={Boolean(busyAction)}
               >
-                {busyAction === 'update' ? 'Updating...' : 'Mark as done'}
+                {busyAction === 'update' ? 'Updating...' : nextStep.action}
               </Button>
             )}
             {onDelete && (

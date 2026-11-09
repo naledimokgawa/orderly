@@ -18,11 +18,17 @@ CREATE TABLE IF NOT EXISTS orders (
   customer_name VARCHAR(120) NOT NULL,
   description TEXT NOT NULL,
   order_date DATE NOT NULL,
-  status VARCHAR(30) NOT NULL DEFAULT 'preparing' CHECK (status IN ('preparing', 'done', 'cancelled')),
+  status VARCHAR(30) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'preparing', 'done', 'cancelled')),
   created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Migrate existing databases to the pending -> preparing -> done lifecycle.
+ALTER TABLE orders ALTER COLUMN status SET DEFAULT 'pending';
+ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_status_check;
+ALTER TABLE orders
+  ADD CONSTRAINT orders_status_check CHECK (status IN ('pending', 'preparing', 'done', 'cancelled'));
 
 INSERT INTO users (name, email, password_hash, role)
 VALUES
@@ -38,7 +44,7 @@ SET name = EXCLUDED.name,
 
 INSERT INTO orders (customer_name, description, order_date, status, created_by)
 VALUES
-  ('Alicia Stone', '2 grilled chicken wraps and 1 lemonade', '2026-10-09', 'preparing', 2),
+  ('Alicia Stone', '2 grilled chicken wraps and 1 lemonade', '2026-10-09', 'pending', 2),
   ('Marcus Lee', 'Family meal: 4 burgers, fries, 2 soft drinks', '2026-10-09', 'preparing', 3),
   ('Nia Brown', 'Pizza combo with salad and bottled water', '2026-10-09', 'done', 4)
 ON CONFLICT DO NOTHING;

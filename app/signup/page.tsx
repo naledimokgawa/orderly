@@ -5,30 +5,24 @@ import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useState } from 'react';
 import {
   Alert,
-  Badge,
   Box,
   Button,
   Field,
   Heading,
   Input,
   Link,
-  SimpleGrid,
   Stack,
   Text,
 } from '@chakra-ui/react';
 import { AppShell } from '../../components/AppShell';
-import { OrderCard } from '../../components/OrderCard';
+import { Order } from '../../components/OrderCard';
+import { PublicOrderBoard } from '../../components/PublicOrderBoard';
 import { PasswordInput } from '../../components/ui/password-input';
-
-type PreparingOrder = {
-  id: number;
-  status: 'preparing';
-};
 
 export default function SignupPage() {
   const router = useRouter();
   const [form, setForm] = useState({ name: '', email: '', password: '' });
-  const [orders, setOrders] = useState<PreparingOrder[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [ordersError, setOrdersError] = useState('');
   const [error, setError] = useState('');
@@ -36,7 +30,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    async function loadPreparingOrders() {
+    async function loadPublicOrders() {
       try {
         const response = await fetch('/api/orders?public=true');
         const data = await response.json();
@@ -52,7 +46,7 @@ export default function SignupPage() {
       }
     }
 
-    loadPreparingOrders();
+    loadPublicOrders();
   }, []);
 
   async function handleSubmit(e: FormEvent) {
@@ -199,33 +193,17 @@ export default function SignupPage() {
                 Public order updates
               </Text>
               <Heading as="h2" mt="2" size="2xl">
-                Orders being prepared
+                Order status
               </Heading>
             </Box>
-            <Badge
-              colorPalette="accent"
-              variant="subtle"
-              size="lg"
-              rounded="full"
-            >
-              {orders.length} preparing
-            </Badge>
           </Stack>
 
           {ordersLoading ? (
             <Text color="fg.muted">Loading current orders...</Text>
           ) : ordersError ? (
             <Text color="fg.error">{ordersError}</Text>
-          ) : orders.length ? (
-            <SimpleGrid gap="5" columns={{ base: 1, md: 2, xl: 3 }}>
-              {orders.map((order) => (
-                <OrderCard key={order.id} order={order} publicView />
-              ))}
-            </SimpleGrid>
           ) : (
-            <Text color="fg.muted">
-              There are no orders being prepared right now.
-            </Text>
+            <PublicOrderBoard orders={orders} />
           )}
         </Box>
       </Stack>
