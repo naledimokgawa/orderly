@@ -9,11 +9,13 @@ import {
   Flex,
   Heading,
   Input,
+  NativeSelect,
   SimpleGrid,
   Stack,
   Text,
 } from '@chakra-ui/react';
 import { AppShell, notifyOrdersChanged } from '../../components/AppShell';
+import { DeleteOrderDialog } from '../../components/DeleteOrderDialog';
 import { Order, OrderCard } from '../../components/OrderCard';
 import { PublicOrderBoard } from '../../components/PublicOrderBoard';
 import {
@@ -38,6 +40,7 @@ export default function OrdersPage() {
   const [user, setUser] = useState<UserSession | null>(null);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<OrderStatusFilter>('all');
+  const [deleteOrderId, setDeleteOrderId] = useState<number | null>(null);
   const [busyOrder, setBusyOrder] = useState<{
     id: number;
     action: 'update' | 'delete';
@@ -136,7 +139,9 @@ export default function OrdersPage() {
       if (!response.ok)
         throw new Error(data.message || 'Unable to update order.');
       await loadOrders();
-      setSuccess(`Order #${id} is now ${ORDER_STATUS_LABELS[status].toLowerCase()}.`);
+      setSuccess(
+        `Order #${id} is now ${ORDER_STATUS_LABELS[status].toLowerCase()}.`
+      );
       notifyOrdersChanged();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to update order.');
@@ -146,7 +151,6 @@ export default function OrdersPage() {
   }
 
   async function handleDelete(id: number) {
-    if (!window.confirm(`Delete order #${id}? This cannot be undone.`)) return;
     setError('');
     setSuccess('');
     setBusyOrder({ id, action: 'delete' });
@@ -157,6 +161,7 @@ export default function OrdersPage() {
         throw new Error(data.message || 'Unable to delete order.');
       await loadOrders();
       setSuccess(`Order #${id} deleted.`);
+      setDeleteOrderId(null);
       notifyOrdersChanged();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to delete order.');
@@ -259,28 +264,25 @@ export default function OrdersPage() {
           {canManageOrders && (
             <Field.Root mb="5" maxW="xs">
               <Field.Label>Filter by status</Field.Label>
-              <select
-                value={statusFilter}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  if (value === 'all' || isOrderStatus(value)) {
-                    setStatusFilter(value);
-                  }
-                }}
-                style={{
-                  padding: '0.75rem',
-                  border: '1px solid var(--chakra-colors-border)',
-                  borderRadius: '0.5rem',
-                  background: 'var(--chakra-colors-bg-panel)',
-                }}
-              >
-                <option value="all">Latest (3 pending, 3 preparing, 4 done)</option>
-                {ORDER_STATUSES.map((status) => (
-                  <option key={status} value={status}>
-                    {ORDER_STATUS_LABELS[status]}
-                  </option>
-                ))}
-              </select>
+              <NativeSelect.Root>
+                <NativeSelect.Field
+                  value={statusFilter}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    if (value === 'all' || isOrderStatus(value)) {
+                      setStatusFilter(value);
+                    }
+                  }}
+                >
+                  <option value="all">Latest orders</option>
+                  {ORDER_STATUSES.map((status) => (
+                    <option key={status} value={status}>
+                      {ORDER_STATUS_LABELS[status]}
+                    </option>
+                  ))}
+                </NativeSelect.Field>
+                <NativeSelect.Indicator />
+              </NativeSelect.Root>
             </Field.Root>
           )}
 
@@ -315,13 +317,25 @@ export default function OrdersPage() {
                     busyOrder?.id === order.id ? busyOrder.action : undefined
                   }
                   onAdvance={canManageOrders ? handleAdvance : undefined}
-                  onDelete={canManageOrders ? handleDelete : undefined}
+                  onDelete={canManageOrders ? setDeleteOrderId : undefined}
                 />
               ))}
             </SimpleGrid>
           )}
         </Box>
       </Stack>
+      <DeleteOrderDialog
+        orderId={deleteOrderId}
+        isDeleting={
+          deleteOrderId !== null &&
+          busyOrder?.id === deleteOrderId &&
+          busyOrder.action === 'delete'
+        }
+        onClose={() => setDeleteOrderId(null)}
+        onConfirm={() => {
+          if (deleteOrderId !== null) void handleDelete(deleteOrderId);
+        }}
+      />
     </AppShell>
   );
 }
